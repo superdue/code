@@ -1,0 +1,310 @@
+# Scala语言中的内部DSL设计
+
+对于应用中反映业务规则的部分,DSL能非常有效地疏通开发团队与领域专家团队的沟通渠道.
+学完本章,你将全面掌握如何在Scala这种宿主语言中设计DSL,你会学到如何建模领域组件,然后围绕它们建立简单易用,语义丰满的语言抽象,熟悉这方面的惯用法和最佳实践
+
+## 6.1 为何选择Scala
+
+用于DSL设计的代表性Scala特性
+
+语言特性                   Scala的具体做法
+-----------------------+--------------------------------------------------------
+灵活的语法                  Scala的表层语法简练,有许多手段可使DSL更贴切真实的领域用语
+                           例如:
+                           - 可省略方法调用的点符号
+                           - 分号推断
+                           - 中缀运算符
+                           - 可省略方法调用的圆括号
+可扩展的对象系统             Scala是面向对象的,它与Java使用相同的对象模型,然后利用自身先进的类型系统,在很多方面进行了扩展
+                           Scala的对象语义:
+                           - trait的用途是基于mixin的实现继承
+                           - 抽象类型成员和泛型类型参数这两项语言特性都可以使类具有正交扩展能力
+                           - 通过自类型标注对抽象的正交扩展进行约束
+                           - case类的用途是实现值对象
+函数式编程能力               Scala是一门多范式的编程语言,结合了面向对象和函数式语言的语言特性
+                           为何采用面向对象和函数式相结合的方式?
+                           - Scala中的函数是第一类值;从类型系统层面开始,就支持高阶函数.用户可将自定义DSL控制结构写成闭包,然后当做一般的数据类型传递
+                           - 在纯粹的面向对象语言中,一切事物都要套人类的设计形式,不管它本来的领域含义应该是名词还是动词,Scala混合了面向对象与函数特性,
+                             更有利于模型贴近问题域的语义.
+静态检查的鸭子类型            Scala通过结构化类型定义支持鸭子类型
+                           与Ruby鸭子类型的差别:
+                           Scala的鸭子类型是`静态`检查的
+限定了词法作用域的开放类      Scala通过它的implicit语言结构取得开放类的效果.
+                           与Ruby猴子补丁的差别:
+                           Scala的implicit结构有词法作用域的限制;通过隐式转换方式添加的行为,需要明确导入具体的词法作用域才生效
+隐含参数                    API调用中可以省略部分参数,让编译器去推断,这样做可以精简语法,提高DSL脚本的可读性
+模块化的对象组合方式          有独特的对象概念,可用来定义具体的DSL模块,你可以将一些DSL结构定义为抽象成员,推迟进行具体实现.
+
+## 6.2 迈向Scala DSL的第一步
+
+Scala是一种很好的内部DSL宿主语言,但单凭这一点不足以说服经理在开发环境中引入Scala这种新技术.任何新技术都要控制引入的节奏,以免增加混乱的风险.
+一般可以先在不太关键的业务上采用,再慢慢普及.
+
+### 6.2.1 通过Scala DSL测试Java对象
+
+### 6.2.2 用Scala DSL作为对Java对象的包装
+
+### 6.2.3 将非关键功能建模为Scala DSL
+
+大型应用常包含一些不太关键的部分,你可以跟客户协商,把其中一些次要的部分作为Scala DSL设计的试验田.如果不愿意放弃主要的Java编译模式,那么可以把
+Scala DSL做成脚本,然后通过Java 6提供的ScriptEngine来运行.
+
+## 6.3 正式启程
+
+Scala知识点
+- Scala语言的面向对象特性: Scala的类和继承结构有多种设计方式
+- Scala语言拥有类型推断特性: 它的运算符等同于方法;语法灵活,可省略圆括号和分号.
+- 不可变变量: 有利于设计函数式抽象
+- Scala语言的case类和case对象: 其特点适用于设计不可变的值对象
+- Scala的trait特性: 可用于设计mixin和多继承
+
+### 6.3.1 语法层面的表现力
+
+- 自动推断句末分号
+- 命名参数和默认参数
+- 类型推断
+- 运算符等同于方法
+- 可省略圆括号
+
+Scala语法的可读性: 强大的集合字面量语法,允许用闭包作为控制抽象,隐含参数
+
+### 6.3.2 建立领域抽象
+
+设计Scala DSL 时,通常需要有一个对象模型作为基本抽象层.然后运用子类型化手段,实现各种模型组件的特化,再将它们与解答域中符合条件的mixin
+组合起来,构成更大型的抽象.模型中的操作可通过函数抽象来表示,然后用组合子来组织它们.
+
+从类型和值的
+角度进行抽象
+    ^                  |-------|
+    |                  |------||
+    ----|-------|----->|      ||             ==>    (面向对象)
+        | class |      |------||
+    ----|-------|      通过trait实现mixin
+    |                      |
+    V                      |
+以子类型化方式进行特化        |
+                           V
+                       组合成模块
+                           ^
+                           |
+                           |
+                   方法+闭包+组合子=           ==>    (函数式)
+                   功能丰富的函数式抽象
+
+Scala兼具面向对象编程和函数式编程功能,两者都可用于建设领域模型.运用Scala的面向对象特性,可以从类型和值的角度进行抽象,以子类型化的方式
+特化一个组件,然后通过mixin进行组合,而在函数式特性这边,Scala给你准备了高阶函数,闭包,组合子等工具,最后,可以用模块将两方面的成果合并起来,
+得到最终的抽象.
+
+abstract class Currency
+trait Instrument
+case class Equity
+trait FixedIncome extends Instrument
+case class CouponBond extends FixedIncome
+case class DiscountBond extends FixedIncome
+
+abstract class AccountType
+case object CLIENT extends AccountType
+case object BROKER extends AccountType
+
+abstract class Account
+case class ClientAccount extends Account
+case class BrokerAccount extends Account
+
+trait Trade
+trait FixedIncomeTrade extends Trade
+trait EquityTrade extends Trade
+
+看看哪些Scala特性对模型的表现力和简洁性有所贡献
+ 1. 单例对象,因为它只实例化一次的特点,此处被用于实现Currency类的几个特化实体,单例对象是Scala语言实现Singleton的方式,弥补了Java语言中
+   `静态成员`的所有不足
+ 2. 在trait的组织下,通过继承来实现一种`可扩展的对象层次关系`
+ 3. case类具有`简化的构造函数调用形式`
+
+## 6.4 制作一种创建交易的DSL
+
+`val fixedIncomeTrade = 200 discount_bonds IBM for_client NOMURA on NYSE at 72.ccy(USD)`
+创建了一个FixedIncomeTrade的实例,为客户账号NOMURA在纽约证券交易所按72美元的单价买入200张IBM的折扣债券
+`val equityTrade = 200 equities GOOGLE for_client NOMURA on TKY at 1000.ccy(JPY)`
+创建了一个EquityTrade实例,为客户账号NOMURA在东京证券交易所按10000日元的单价卖出200股Google的股票.
+
+Scala知识点
+- 隐含参数:用户没有明确制定时,隐含参数由编译器自动提供,特别适用于设计精简的DSL语法
+- 隐式类型转换:是实现"限制了词法作用域的开放类"的秘诀,这种开放类近似于Ruby的猴子补丁,但比猴子补丁更好用
+- 命名参数和默认参数:用在Builder模式的实现当中,可以省略不少拖泥带水的代码
+
+case class FixedIncomeTradeImpl extends FixedIncomeTrade
+
+val t1 = FixedIncomeTradeImpl(
+  tradingAccount = NOMURA,
+  instrument = IBM,
+  currency = USD,
+  market = NYSE,
+  quantity = 100,
+  unitPrice = 42)
+
+DSL与一般API的差异明显.DSL版的创建过程更自然,更适合领域用户阅读;API版的编程味道比较浓,有许多语法细节需要注意,
+例如分隔参数项的逗号,实例化时要写出类名等.
+稍后你会发现,可读性强的DSL版为了实现操作的顺序执行,同样要满足许多约束条件.
+如果看中顺序的灵活性,可以选择Builder模式,但那样会带来Builder对象的可变性问题和方法链的收尾问题
+
+### 6.4.1 实现细节
+
+对比DSL脚本和普通的构造函数调用写法,DSL脚本中几乎没有与`领域语义`无关的语法结构,这就是两者最明显的区别
+Scala允许省略表示方法调用的点运算符和方法参数使用的圆括号,就算在这样有利条件之下,如果没有一种足够灵活的手段,还是不能把各种成分合理的组合
+起来,成为符合语言逻辑的脚本.
+
+object TradeImplicits
+
+把所有的领域模型抽象放入api包,语言层的抽象则放在dsl包里,另外,让这两个抽象层保持分离,这样有利于以后对同一个领域模型建立多种DSL.
+设计DSL时也应该始终遵循这种惯例.
+
+### 6.4.2 DSL实现模式的变化
+
+传统的Builder模式的方法调用序列写起来十分灵活方便,但问题是用户最后必须调用一个收尾方法来结束构建过程.相比之下,本例当前的实现方式已经将调用序列
+固定在DSL里面,如果用户没构造完交易对象就提早终止调用序列,那么编译器就会发出提醒.两种方案并没有绝对的优劣之分,无非是一种设计决策.
+传统的Builder模式有一个可变的builder对象,用户通过它的连贯接口发起链式的方法调用,完成对该builder对象的修改.本例中的Builder模式实现由一系列
+隐式转换构成,每一步转换产生的对象都是不可变的,尽量采用不可变性的抽象设计是一种好习惯.
+
+## 6.5 用DSL建模业务规则
+
+基于DSL的开发,其出发点正是促进与领域专家的沟通,协助专家查验由开发者实现的业务规则
+业务规则是DSL的一个应用热点,业务规则属于领域模型中可配置的部分,正是最需要领域专家过目的环节
+
+DSL将要建模的业务规则: 计算交易的税费
+1. 执行交易: 买卖双方在证券交易所产生交易
+2. 计算税费: 已发生的交易需要计算相应的税费,计算逻辑由交易类型,交易的证券,进行交易的证券交易所等因素决定
+            买卖双方按照交易净值进行结算,税费是交易净值的核心组成部分
+
+Scala知识点
+- 模式匹配: 可用于实现函数式的抽象,还可实现一种可扩展的Visitor模式
+- 高阶函数: 是Scala语言代表性的函数式编程特性,可用于实现组合子
+- 抽象val和抽象类型用于设计开放的抽象.开放抽象可适时组合为具体的抽象
+- 自类型标注(self-type annotation)可以用来建立抽象间的关联
+- 偏函数(partial function)是可对其定义域的一个子集进行求值的表达式
+
+### 6.5.1 模式匹配如同可扩展的Visitor模式
+
+对case类使用模式匹配,是为了实现一种通用的,可扩展的Visitor模式
+模式匹配这种函数式实现范式,配合case类的用法,能大大提高DSL的表达能力和扩展能力,并且不会像一般面向对象的Visitor实现那样,容易出现领域
+规则被深埋在对象层次里面的问题.
+
+考虑为这样一条业务规则建立DSL: 对于在今天之前开户的所有账户,将其额度提高10%
+
+1. 从系统内的所有账户中找出客户账户
+2. 从客户账户中找出需要修改额度的账户
+
+def raiseCreditLimits(accounts: List[Account]) {
+  accounts foreach {acc =>
+    acc match {
+      case ClientAccount(_, _, openDate) if (openDate before TODAY) =>
+        acc.creditLimit = acc.creditLimit * 1.1
+      case _ =>
+    }
+  }
+}
+
+这段代码能算DSL吗?算.它对领域规则的表述,达到了领域专家能理解的直观程度.它把实现浓缩在很短的篇幅里,领域专家不需要来回翻查代码就能掌握规则语句的语义
+
+DSL的表述能力只要满足用户需要即可
+DSL不一定非要向自然语言靠拢,我重申: 对DSL表达能力的要求是,足够满足用户需要,本例的代码片段由程序员使用,所以只要把规则的意图表达清楚,
+让程序员能维护,领域用户能看懂,这样就足够了.
+
+### 6.5.2 充实领域模型
+
+abstract class TaxFee
+case object TradeTax extends TaxFee
+case object Commission extends TaxFee
+case object Surcharge extends TaxFee
+case object VAT extends TaxFee
+
+trait TaxFeeCalculator
+trait TaxFeeCalculationComponent
+
+### 6.5.3 用DSL表达税费计算的业务规则
+
+1. 选出合适的应缴税费品种列表
+2. 计算税费
+3. DSL和API有什么区别
+   到底内部DSL和API有什么区别呢?坦白讲,区别不大,如果一套API具有充分的表达能力,能向用户清楚地揭示领域语义,同时又不增加额外的非本质复杂性,那么
+   它就可以算作一种内部DSL.
+   DSL实现者需要维护代码,领域专家需要理解语义,要想不多做语法上的包装同时满足这两方面的需要,你选择的实现语言必须拥有建立并组合高阶抽象的能力.
+
+代码中用到了orElse组合子,它的作用是连续多个Scala偏函数,然后选取第一个对给定参数取值有定义的偏函数
+
+trait TaxFeeRules
+trait TaxFeeRulesComponent
+
+## 6.6 把组件装配起来
+
+Scala知识点
+- Scala的模块,即Object关键字,允许通过组合抽象的组件来定义具体的实例
+- 各种组合子,如map,foldLeft,foldRight
+
+### 6.6.1 用trait和类型组合出更多的抽象
+
+领域模型里面有一部分抽象扮演对外的窗口,直接面向最终用户,`领域服务`即为其中之一,`领域服务`使用各种实体和值对象,向用户履行契约.
+
+trait TradingService
+
+### 6.6.2 使领域组件具体化
+
+object EquityTradingService
+
+Scala可以推迟到最后时刻才进行具体的实现,Scala的这种能力源自 抽象值, 抽象类型, 自类型标注 这三大支柱的支撑.除此之外,mixin 式继承 灵活的
+抽象组合能力也起了很大作用,Scala给了你丰富的手段去设计可扩展的各式组件
+
+## 6.7 组合多种DSL
+
+### 6.7.1 扩展关系的组合方式
+
+1. DSL的扩展
+trait TradeDsl
+trait FixedIncomeTradeDsl extends TradeDsl
+trait EquityTradeDsl extends TradeDsl
+trait MarketRuleDsl extends TradeDsl
+2. 通过可插拔替换的语义来组合
+   类似的领域规则,我们希望实现成洋葱一样的层叠结构,既可灵活地增减,又不影响核心抽象(请比照装饰器模式来理解)
+3. 通过函数式组合子来组合
+   组成流程序列的步骤适合用PartialFunction组合子来建模,而模式匹配可以把规则表达得清晰直白.
+   为什么要把enrich定义成PartialFunction呢?Scala的偏函数具有令人赞叹的组合能力,特别适合用来构建高阶结构.
+4. 使用组合完毕的DSL
+   使用了装饰器模式作为组合手段,我们semantics作为待装饰的DSL,在它的外面包裹装点其他必要逻辑,通过装饰器模式,对象可以动态地增减其职责.它的这种
+   能力在我们需要组合有亲缘关系的DSL时,正好能派上用场.
+
+
+
+
+### 6.7.2 层级关系的组合方式
+
+trait Portfolio
+trait ClientPortfolio extends Portfolio
+
+trait Balances
+class BalancesImpl extends Balances
+
+trait Auditing extends Portfolio
+
+1. 避免与实现发生耦合
+2. 对结余的建模
+3. 结余DSL与资产组合DSL的组合
+   为了在类的内部访问bal对象的所有成员,我们运用了Scala的对象导入语法
+
+   通过层级方式来组合多个DSL的优点
+   1. 不受抽象内部表达的影响:对多个DSL进行组合时,语句中不会出现内嵌实现的任何细节
+   2. 耦合松散: 参与组合的DSL之间耦合松散,各自可以独立演进
+   3. 静态类型安全: Scala拥有强大的类型系统,可以由编译器来实施所有的约束
+
+## 6.8 DSL中的Monad化结构
+
+抽象组合得越好,DSL的可读性就越强,当针对"运算"进行抽象时,函数式编程提供的组合能力要超过面向对象编程.
+这是因为函数式编程将各种运算都当作纯数学函数来使用,不产生改变状态的副作用.如果函数与改变状态分离,它就变成了一种不依赖于任何外部上下文,可以
+单独验证的抽象.借助函数式编程提供的数学模型,运算可以被组合成一些函数式的组合体.
+记住,函数的组合性意味着我们可以用简单的构建块搭建出复杂的抽象.
+
+## 6.9 小结
+
+本章已经逐一展示能用于内部DSL设计的Scala语言特性,我们从一份Scala特性名单开始,然后通过分析证券交易领域的众多DSL片段,
+认真深入分析这些DSL片段的设计.从结构上来说,DSL是底层实现模型上的一重门面.讨论的焦点在领域模型与它上的语言抽象之间来回切换
+
+DSL需要在`契约层次`上表现出它的组合能力,避免暴露任何实现细节.
+Monad在Scala语言中的位置并不像它在Haskell编程模型中的地位那么显著,但用处并不小.
