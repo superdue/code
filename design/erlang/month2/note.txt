@@ -1,0 +1,38 @@
+这两天的培训主要内容是：
+- 如何设计一个程序数三角形
+- FizzBuzzWhizz的继续迭代：
+  - 在 apply_rule 的基础上增加并行处理 p_apply_rule
+  - 实现 pmap 增加并行处理 list
+  - 在并行处理中增加 processor 的生命周期（stop）控制
+  - 重新实现 FizzBuzzWhizz，通过 eval 解释器，解释执行“字节码”（Codes）
+  - 增加调度功能（scheduler），实现可控的并行处理
+  - 多重调度（multi scheduler）
+
+1. 这次正经地领略了 Erlang 的魅力，和其他类似的静态类型语言比：
+- Erlang 动态类型的模式匹配威力太强大了，自定义几种类型就可以模式匹配，返回可以是完全不同的类型，
+  这个给设计带了非常大的自由度，而且足够直观，反之，静态类型语言如果要做到这一点就只能保证一个统一的类型，
+  如在Scala中要实现 -type rule_result() :: {true, string()} | false. 暂时只想到了 type RuleResult = Option[String]
+  -type rule() :: {'ATOM', pred(), action()} | {'AND',  rule(), rule()}   | {'OR',   rule(), rule()}.
+  这种只能通过 case class 实现
+
+- Erlang 写出来的代码非常简洁
+
+- spawn 和 receive 的原生内嵌使得编写并发程序时代码无缝连接，对比Scala的无论是类库自带的Actor还是akka，都必须得弄一个Actor出来
+
+2. 
+Sch1 = scheduler:start(111, {1,2,3}),
+scheduler:load(Sch1, [{prog1, compile(Sepc, []), 13, []}, {prog2, compile(Spec, []), 21, []}]),
+最后的调度器讲的太仓促了。跟之前的跨度太大，没怎么听懂。
+
+3. 邓辉最后说到“remote-shell 是 Erlang 为电信产品量身定做的一个功能，电信软件最关注的是产品发布后，如何去运维的问题”
+还演示了 Erlang 的 remote-shell，我觉得这个是 Erlang 独有的，绝对是杀手级特性。
+
+4. 数三角形体现的设计之美。
+
+
+
+
+
+
+平台里面很多特性完全是没法取代的，你再怎么做也取代不了，其他地方可以模仿，但像容错，调度。。。
+跟领域相关，确实想开发一个高容错的，软实时的，而且可运维。

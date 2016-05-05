@@ -1,0 +1,116 @@
+Ten requirements for the properties of a telecoms system:
+
+1. Handling of a very large number of concurrent activities
+   Scala, Clojure, Actor model, 软实时, 调度
+   
+2. Actions to be performed at certain point in time or within a certain time
+
+3. Systems distributed over several computers
+   分布式系统最核心的问题是“错误”
+   
+4. Interaction with hardware
+
+5. Very large software systems
+   代码是成本，不是资产。提升开发效率，放在工具层面（开发语言，库），降低管理成本沟通成本。维护成本，定位问题。软件工程的进步真正体现在编程语言的进步上。
+
+6. Complex functionality such as feature interaction
+   高并发，这样支撑feature的描述，业务驱动
+
+7. Continuous operation for many years
+   消息版本的兼容性
+
+8. Software maintenance (reconfiguration, etc.) without stopping the system
+   重配置，现在放在数据库里面，schema变化了，怎么让切换比较平滑
+
+9. Stringent quality and reliability requirements
+
+
+10. Fault tolerance both to hardware failures and software errors
+    怎么来容错
+  
+  
+Semantics of How Many?
+
+
+
+
+a
+
+
+
+
+
+b  d   g   j
+
+   e   h
+
+
+c   f   i       k 
+
+
+每个设计都是把问题变成可计算的。设计不满足需求。根本原因是什么？
+接口，callback
+语义是有边界的。
+
+需求在这个领域，或者另外一个领域模型。
+
+一份数据可以有2种投射的方式。
+
+字符串处理，Python很爽
+
+Design = semantics + computation
+
+In software design, always ask the same question: "what does it mean?"
+
+funtional = denotative
+
+Intelligence?
+
+找出“计量系统”的（数学）语义
+定义出表达该语义的语法
+实现该语义
+
+集合关系是数三角形的本质
+
+向量
+
+
+
+
+Foundations of Object-Oriented Languages.
+
+
+在通信系统里面，资源是一个很稀缺的东西，
+释放资源，
+link进程
+
+很快的做原型验证
+
+
+N ways to tackle the problem of memory
+
+硬件资源
+
+
+程序控制流的抽象 continuation --> Monad
+
+
+R1 = 'ATOM'(times(3), fun(_) => "Fizz" end),
+R2 = 'ATOM'(times(5), fun(_) => "Buzz" end),
+
+'AND'(R1, R2), 15
+
+--- compile ---> Codes
+
+eval(Codes, 15) => "FizzBuzz"
+
+计算模型，语义模型
+
+schedule([{prog1, compile(R3), 15},
+          {prog2, compile(R4), 17}]).
+		  
+		  
+云计算平台的核心是资源管理，CPU，内存，网络。。。。我们指基带处理资源等
+
+
+erlang平台里很多特性是没法取代的。
