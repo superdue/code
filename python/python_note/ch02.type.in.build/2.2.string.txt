@@ -1,0 +1,267 @@
+2.2 字符串
+
+与字符串相关的问题总是很多，比如池化（intern）、编码（encode）等。字符串是不可变类型，保存字符序列或二进制数据。
+
+- 短字符串存储在 arena 区域，str、unicode 单字符会被永久缓存。
+- str 没有缓存机制，unicode 则保留 1024 个宽字符长度小于 9 的复用对象。
+- 内部包含 hash 值，str 别有标记来判断是否被池化。
+
+字符串常量定义简单自由，可以是单引号、双引号或三引号。但我个人建议用双引号表示字符串，用单引号表示它符，和其他语言习惯保持一致。
+
+>>> "It's a book."
+"It's a book."
+>>> 'It\'s a book.'
+"It's a book."
+>>> '{"name":"Tom"}'
+'{"name":"Tom"}'
+>>> """
+...
+... line 1
+... line 2
+... """
+'\n\nline 1\nline 2\n'
+>>> r"abc\x"
+'abc\\x'
+>>> "a" "b" "c"
+'abc'
+>>> "中国人"
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> s = "中国人"
+>>> type(s), len(s)
+(<type 'str'>, 6)
+>>> u"中国人"
+u'\u4e2d\u56fd\u4eba'
+>>> u = u"中国人"
+>>> type(u), len(u)
+(<type 'unicode'>, 3)
+>>>
+
+基本操作：
+
+>>> "a" + "b"
+'ab'
+>>> "a" * 3
+'aaa'
+>>> ",".join(["a","b","c"])
+'a,b,c'
+>>> "a,b,c".split(",")
+['a', 'b', 'c']
+>>> "a\nb\r\nc".splitlines()
+['a', 'b', 'c']
+>>> "a\nb\r\nc".splitlines(True)
+['a\n', 'b\r\n', 'c']
+>>> "abc".startswith("ab"), "abc".endswith("bc")
+(True, True)
+>>> "abc".upper(), "Abc".lower()
+('ABC', 'abc')
+>>> "abcabc".find("bc"), "abcabc".find("bc", 2)
+(1, 4)
+>>> " abc".lstrip(), "abc ".rstrip(), " abc ".strip()
+('abc', 'abc', 'abc')
+>>> "abc".strip("ac")
+'b'
+>>> "abcabc".replace("bc", "BC")
+'aBCaBC'
+>>> "a\tbc".expandtabs(4)
+'a   bc'
+>>> "123".ljust(5, '0'), "456".rjust(5, '0'), "abc".center(10, '*')
+('12300', '00456', '***abc****')
+>>> "123".zfill(6), "123456".zfill(4)
+('000123', '123456')
+>>>
+
+编码
+
+Python 2.x 默认采用 ASCII 编码。为了完成编码转换，必须和操作系统字符编码统一起来。
+
+>>> import sys, locale
+>>> sys.getdefaultencoding()
+'ascii'
+>>> c = locale.getdefaultlocale(); c
+('C', 'gbk')
+>>> reload(sys)
+<module 'sys' (built-in)>
+>>> sys.setdefaultencoding(c[1])
+>>>
+
+str、unicode 都提供了 encode 和 decode 编码转换方法。
+
+- encode: 将默认编码转换为其他编码
+- decode: 将默认或者指定编码字符串转换为 unicode。
+
+# 环境: WindowsXP CygWin - Locale: C - Character set: GBK
+>>> import sys, locale
+>>> reload(sys)
+<module 'sys' (built-in)>
+>>> sys.setdefaultencoding('gbk')
+>>> s = "中国人"; s
+'\xd6\xd0\xb9\xfa\xc8\xcb'               # 默认 `GBK`
+>>> u = s.decode(); u                    # `GBK` -> UNICODE
+u'\u4e2d\u56fd\u4eba'
+>>> gb = s.encode("gb2312"); gb          # `GBK` -> GB2312
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+# ??? encode 会把 gb 当做默认的 `GBK` 编码，所以不会出错。
+>>> gb.encode("utf-8")                   # `GBK` -> UTF-8
+'\xe4\xb8\xad\xe5\x9b\xbd\xe4\xba\xba'
+>>> gb.encode("gbk")                     # `GBK` -> GBK
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> gb.decode("gb2312")                  # GB2312 -> UNICODE
+u'\u4e2d\u56fd\u4eba'
+>>> gb.decode("gb2312").encode()         # GB2312 -> UNICODE -> `GBK`
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> unicode(gb, "gb2312")                # GB2312 -> UNICODE
+u'\u4e2d\u56fd\u4eba'
+>>> u.encode()                           # UNICODE -> `GBK`
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> u.encode("gb2312")                   # UNICODE -> GB2312
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>>
+
+# 环境: MacOS
+
+>>> import sys
+>>> reload(sys)
+<module 'sys' (built-in)>
+>>> sys.setdefaultencoding('utf-8')
+>>> s = "中国人"; s
+x9b\xbd\xe4\xba\xba'
+# FIXME
+>>> u = s.decode(); u
+u'\u4e2d\u56fd\u4eba'
+>>> gb = s.encode("gb2312"); gb
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> gb.encode("utf-8")
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+UnicodeDecodeError: 'utf8' codec can't decode byte 0xd6 in position 0: invalid continuation byte
+>>> gb.decode("gb2312")
+u'\u4e2d\u56fd\u4eba'
+>>> gb.decode("gb2312").encode()
+'\xe4\xb8\xad\xe5\x9b\xbd\xe4\xba\xba'
+>>> unicode(gb, "gb2312")
+u'\u4e2d\u56fd\u4eba'
+>>> u.encode()
+'\xe4\xb8\xad\xe5\x9b\xbd\xe4\xba\xba'
+>>> u.encode("gb2312")
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>>
+
+标准库另有 codecs 模块用来处理更复杂的编码转换，比如大小端和 BOM。
+
+>>> import sys
+>>> reload(sys)
+<module 'sys' (built-in)>
+>>> sys.setdefaultencoding("GBK")
+>>> s = "中国人"
+>>> s
+'\xd6\xd0\xb9\xfa\xc8\xcb'
+>>> s.encode("utf-32")
+'\xff\xfe\x00\x00-N\x00\x00\xfdV\x00\x00\xbaN\x00\x00'
+>>> from codecs import BOM_UTF32_LE
+>>> BOM_UTF32_LE
+'\xff\xfe\x00\x00'
+>>> s.encode("utf-32").decode("utf-32")
+u'\u4e2d\u56fd\u4eba'
+>>>
+
+格式化
+
+Python 提供了两种字符串格式化方法，除了熟悉的 C 样式外，还有更强大的 format。
+
+`%[(key)][flags][width][.precision]typecode`
+
+标记：- 左对齐，+ 数字符号，# 进制前缀，或者用空格、0 填充。
+
+>>> "%(key)s=%(value)d" % dict(key="a",value=10)
+'a=10'
+>>> "[%-10s]" % "a"
+'[a         ]'
+>>> "%+d, %+d" % (-10, 10)
+'-10, +10'
+>>> "%010d" % 3
+'0000000003'
+>>> "%.2f" % 0.1234
+'0.12'
+>>> "%#x, %#X" % (100, 200)
+'0x64, 0XC8'
+>>> "%s, %r" % (m, m)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'm' is not defined
+>>> class M
+  File "<stdin>", line 1
+    class M
+          ^
+SyntaxError: invalid syntax
+>>> class M:
+...     pass
+...
+>>> m = M()
+>>> "%s, %r" % (m, m)
+'<__main__.M instance at 0x7fea6acc>, <__main__.M instance at 0x7fea6acc>'
+>>> class M(object):
+...     def __str__(self): return "test..."
+...
+>>> m = M()
+>>> "%s, %r" % (m, m)
+'test..., <__main__.M object at 0x7fea6b4c>'
+>>>
+
+format 方法支持更多的数据类型，包括列表、字典、对象成员等。
+
+`{field!convertflag:formatspec}`
+
+格式化规范：
+
+`formatspec: [[fill]align][sign][#][0][width][.precision][typecode]`
+
+示例：
+
+>>> "{key}={value}".format(key="a",value=10)
+'a=10'
+>>> "{0},{1},{0}".format(1,2)
+'1,2,1'
+>>> "{0:,}".format(1234567)
+'1,234,567'
+>>> "{0:,.2f}".format(12345.6789)
+'12,345.68'
+>>> "[{0:<10}], [{0:^10}], [{0:*>10}]".format("a")
+'[a         ], [    a     ], [*********a]'
+>>> import sys
+>>> "{0.platform}".format(sys)
+'cygwin'
+>>> "{0[a]}".format(dict(a=10,b=20))
+'10'
+>>> "{0[5]}".format(range(10))
+'5'
+>>>
+
+另有 string.Template 模板可供使用。该模块还定义了各种常见的字符序列。
+
+>>> from string import letters, digits, Template
+>>> letters
+'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+>>> digits
+'0123456789'
+>>> Template("$name, $age").substitute(name="User1", age=20)
+'User1, 20'
+>>> Template("${name}, $age").safe_substitute(name="User1")
+'User1, $age'
+>>>
+
+池化
+
+在 Python 进程中，无数的对象拥有一堆类似 "__name__"、"__doc__" 这样的名字，池化有助于减少对象数量和内存消耗，提升性能。
+
+用 intern() 函数可以运行期动态生成的字符串池化
+
+>>> s = "".join(["a","b","c"])
+>>> s is "abc"
+False
+>>> intern(s) is "abc"
+True
+>>> intern(s) is intern(s)
+True
+>>>
+
+当池化的字符串不再有引用时，将被回收。

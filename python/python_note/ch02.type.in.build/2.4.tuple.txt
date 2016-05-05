@@ -1,0 +1,32 @@
+2.4 元组
+
+元组（tuple）看上去像列表的只读版本，但在底层实现上有很多不同之处。
+
+- 只读对象，元组和元素指针数组内存是一次性连续分配的。
+- 虚拟机缓存 n 个元素数量小于 20 的元组复用对象。
+
+在编码中，应该尽可能用元组代替列表。除内存复用更高效外，其只读特征更利于并行开发。
+
+基本操作：
+
+>>> a = (4,)
+>>> type(a)
+<type 'tuple'>
+>>> s = tuple("abcadef")
+>>> s
+('a', 'b', 'c', 'a', 'd', 'e', 'f')
+>>> s.count("a")
+2
+>>> s.index("d")
+4
+>>> from collections import namedtuple
+>>> User = namedtuple("User", "name age")
+>>> u = User("user1", 10)
+>>> u.name, u.age
+('user1', 10)
+>>> a = (4)
+>>> type(a)
+<type 'int'>
+>>>
+
+其实 namedtuple 并不是元组，而是利用模板动态创建的自定义类型。

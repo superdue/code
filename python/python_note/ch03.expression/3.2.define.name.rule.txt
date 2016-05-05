@@ -1,0 +1,379 @@
+3.2 命名规则
+
+>>> s = set("abc")
+>>> s.pop()
+'a'
+>>> _
+'a'
+>>>
+
+>>> def test():
+...     while True:
+...         x = 10
+...         break
+...     print locals()
+...     print x
+...
+>>> test()
+{'x': 10}
+10
+>>>
+
+
+>>> a, b = "a", "b"
+>>> a, b = "ab"
+>>> a, b = [1, 2]
+>>> a, b = xrange(2)
+>>>
+
+>>> a, b = "abc"
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ValueError: too many values to unpack
+>>> a, b, _ = "abc"
+>>> a, b = "abc"[:2]
+>>>
+
+>>> x = 10
+>>> if x > 0:
+...     print "+"
+... elif x < 0:
+...     print "-"
+... else:
+...     print "0"
+...
++
+>>>
+
+>>> x = 1
+>>> print "+" if x > 0 else ("-" if x < 0 else "0")
++
+>>> x = 0
+>>> print "+" if x > 0 else ("-" if x < 0 else "0")
+0
+>>> x = -1
+>>> print "+" if x > 0 else ("-" if x < 0 else "0")
+-
+>>>
+
+>>> x = 1
+>>> print (x > 0 and "+") or (x < 0 and "-") or "0"
++
+>>> x = 0
+>>> print (x > 0 and "+") or (x < 0 and "-") or "0"
+0
+>>> x = -1
+>>> print (x > 0 and "+") or (x < 0 and "-") or "0"
+-
+>>>
+
+>>> x = 10
+>>> if (5 < x <= 10): print "haha!"
+...
+haha!
+>>>
+
+
+>>> if (x = 1) > 0: pass
+  File "<stdin>", line 1
+    if (x = 1) > 0: pass
+          ^
+SyntaxError: invalid syntax
+>>>
+
+
+
+>>> x = 3
+>>> while x > 0:
+...     x -= 1
+... else:
+...     print "over!"
+...
+over!
+>>> while True:
+...     x += 1
+...     if x > 3: break
+... else:
+...     print "over!"
+...
+>>>
+
+
+
+>>> for i in xrange(3): print i
+...
+0
+1
+2
+>>> for k,v in {"a":1,"b":2}.items(): print k, v
+...
+a 1
+b 2
+>>> d = ((1, ["a","b"]), (2, ["x", "y"]))
+>>> for i, (c1, c2) in d:
+...     print i, c1, c2
+...
+1 a b
+2 x y
+>>>
+
+
+>>> for x in xrange(3):
+...     print x
+... else:
+...     print "over!"
+...
+0
+1
+2
+over!
+>>> for x in xrange(3):
+...     print x
+...     if x > 1: break
+... else:
+...     print "over!"
+...
+0
+1
+2
+>>>
+
+
+>>> for i, c in enumerate("abc"):
+...     print "s[{0}] = {1}".format(i, c)
+...
+s[0] = a
+s[1] = b
+s[2] = c
+>>>
+
+
+
+>>> def test():
+...    pass
+...
+>>> class User(object):
+...    pass
+...
+>>>
+
+
+>>> while True:
+...     while True:
+...         flag = True
+...         break
+...     if "flag" in locals(): break
+...
+>>>
+
+
+>>> class BreakException(Exception): pass
+...
+>>> try:
+...     while True:
+...         while True:
+...             raise BreakException()
+... except BreakException:
+...     print "prison break success!"
+...
+prison break success!
+>>>
+
+
+>>> x = 1
+>>> "x" in globals()
+True
+>>> del x
+>>> "x" in globals()
+False
+>>> x = range(10)
+>>> del x[1]
+>>> x
+[0, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> x = range(10)
+>>> del x[1:5]
+>>> x
+[0, 5, 6, 7, 8, 9]
+>>> d = {"a":1,"b":2}
+>>> del d["a"]
+>>> d
+{'b': 2}
+>>> class User(object): pass
+...
+>>> o = User()
+>>> o.name = "user1"
+>>> hasattr(o, "name")
+True
+>>> del o.name
+>>> hasattr(o, "name")
+False
+>>>
+
+
+>>> [x for x in range(10)]
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> {x for x in range(10)}
+set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> {c:ord(c) for c in "abc"}
+{'a': 97, 'c': 99, 'b': 98}
+>>> (x for x in range(10))
+<generator object <genexpr> at 0x1027d7e10>
+>>>
+
+
+>>> [x for x in range(10) if x % 2]
+[1, 3, 5, 7, 9]
+>>>
+
+
+>>> ["{0}{1}".format(c, x) for c in "abc" for x in range(3)]
+['a0', 'a1', 'a2', 'b0', 'b1', 'b2', 'c0', 'c1', 'c2']
+>>>
+
+
+>>> n = []
+>>> for c in "abc":
+...     for x in range(3):
+...         n.append("{0}{1}".format(c, x))
+...
+>>> n
+['a0', 'a1', 'a2', 'b0', 'b1', 'b2', 'c0', 'c1', 'c2']
+>>>
+
+
+>>> ["{0}{1}".format(c, x) for c in "aBcD" if c.isupper() for x in range(5) if x % 2]
+['B1', 'B3', 'D1', 'D3']
+>>>
+
+
+
+>>> def test(it):
+...     for i, x in enumerate(it):
+...         print "{0} = {1}".format(i, x)
+...
+>>> test(hex(x) for x in range(3))
+0 = 0x0
+1 = 0x1
+2 = 0x2
+>>>
+
+
+>>> x = range(10)
+>>> x[2:6]
+[2, 3, 4, 5]
+>>> x[2:-2]
+[2, 3, 4, 5, 6, 7]
+>>> x[2:6:2]
+[2, 4]
+>>>
+
+
+
+>>> x = range(10)
+>>> x[:]
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> x[:6]
+[0, 1, 2, 3, 4, 5]
+>>> x[7:]
+[7, 8, 9]
+>>>
+
+
+>>> x = range(10)
+>>> x[::-1]
+[9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+>>> x[7:3:-2]
+[7, 5]
+>>>
+
+>>> x = range(10)
+>>> del x[4:8]; x
+[0, 1, 2, 3, 8, 9]
+>>> x = range(10)
+>>> del x[::2]; x
+[1, 3, 5, 7, 9]
+>>>
+
+
+>>> a = [1,2,3]
+>>> a[:1] = ["a","b","c"]
+>>> a
+['a', 'b', 'c', 2, 3]
+>>>
+
+
+>>> 1 and 2
+2
+>>> 1 and 2 and 0
+0
+>>> 1 and 0 and 2
+0
+>>> 1 or 0
+1
+>>> 0 or [] or 1
+1
+>>> 0 or 1 or ["a"]
+1
+>>>
+
+
+
+>>> x = 5
+>>> print x > 0 and "A" or "B"
+A
+>>>
+
+
+
+
+>>> x = 5
+>>> y = x or 0
+>>> y
+5
+>>> x = None
+>>> y = x or 0
+>>> y
+0
+>>>
+
+
+
+
+>>> class User(object):
+...     def __init__(self, name):
+...         self.name = name
+...     def __eq__(self, o):
+...         if not o or not isinstance(o, User): return False
+...         return cmp(self.name, o.name) == 0
+...
+>>> a, b = User("tom"), User("tom")
+>>> a is b
+False
+>>> a == b
+True
+>>>
+
+
+
+>>> str(123), int('123')
+('123', 123)
+>>> bin(17), int('0b10001', 2)
+('0b10001', 17)
+>>> oct(20), int('024', 8)
+('024', 20)
+>>> hex(22), int('0x16', 16)
+('0x16', 22)
+>>> str(0.9), float("0.9")
+('0.9', 0.9)
+>>> ord('a'), chr(97), unichr(97)
+(97, 'a', u'a')
+>>> str([0,1,2]), eval("[0,1,2]")
+('[0, 1, 2]', [0, 1, 2])
+>>> str((0,1,2)), eval("(0,1,2)")
+('(0, 1, 2)', (0, 1, 2))
+>>> str({"a":1,"b":2}), eval("{'a':1,'b':2}")
+("{'a': 1, 'b': 2}", {'a': 1, 'b': 2})
+>>> str({1,2,3}), eval("{1,2,3}")
+('set([1, 2, 3])', set([1, 2, 3]))
+>>>
+
