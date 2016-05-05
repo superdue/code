@@ -3,5 +3,5 @@
 *.iml
 *.iws
 out
-*.gradle
+.gradle
 .DS_Store
