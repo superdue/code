@@ -1,0 +1,27 @@
+Because modern computers have multiple cores per CPU, and often multiple CPUs, it's more
+important than ever to design programs in such a way that they can take advantage of this parallel
+processing power. But the interaction of programs that run with parallelism is complex, and the
+traditional mechanism for communication among execution threads -- shared mutable memory -- is
+notoriously difficult to reason about. This can all too easily result in programs that have race
+conditions and deadlocks, aren't readily testable, and don't scale well.
+
+What you should take away from this chapter is not only how to write a library for purely functional
+parallelism, but `how to approach the problem of designing a purely functional library`. Our main
+concern will be to make our library highly composable and modular. To this end, we'll keep with our
+theme of separating the concern of `describing` a computation from actually `running` it. We want to
+allow users of our library to write programs at a very high level, insulating them from the nitty-gritty
+of how their programs will be executed. For example, towards the end of the chapter we'll develop a
+combinator, `parMap`, that will let us easily apply a function `f` to very element in a collection
+simultaneously:
+
+val outputList = parMap(inputList)(f)
+
+To get there, we'll work iteratively. We'll begin with a simple use case that we'd like our library to
+handle, and then develop an interface that facilitates this use case. Only then will we consider what
+our implementation of this interface should be. As we keep refining our design, we'll oscillate
+between the interface and implementation as we gain a better understanding of the domain and the
+design space through progressively more complex use cases. We'll emphasize `algebraic reasoning`
+and introduce the idea that an API can be described by `an algebra` that obeys specific `laws`.
+
+Why design our own library? Why not just use the concurrency primitives that come with Scala's
+standard library in the `scala.concurrent` package? This is partially for pedagogical
