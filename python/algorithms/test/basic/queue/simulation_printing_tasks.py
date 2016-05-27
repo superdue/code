@@ -8,11 +8,11 @@
 # For every second we can simulate the chance that a print task occurs by generating a random number between 1 and 180
 # inclusive. If the number is 180, we say a task has been created.
 
-from pythonds.queue import Queue
+from pythonds.basic.queue import Queue
 import random
 
 class Printer:
-    def __int__(self, ppm):
+    def __init__(self, ppm):
         self.pagerate = ppm
         self.currentTask = None
         self.timeRemaining = 0
@@ -28,7 +28,7 @@ class Printer:
 
     def startNext(self, newtask):
         self.currentTask = newtask
-        self.timeRemaining = newtask.getPages() * 60 / self.pagerate
+        self.timeRemaining = newtask.pages * 60 / self.pagerate
 
 class Task:
     def __init__(self, time):
