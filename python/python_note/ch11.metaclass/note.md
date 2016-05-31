@@ -1,6 +1,8 @@
 # 第11章 元类
 
-类型对象负责创建对象实例,控制对象行为(方法)。那么类型对象又由谁来创建呢? -- 元类(metaclass),也就是类型的类型 
+类型对象负责创建对象实例,控制对象行为(方法)。那么类型对象又由谁来创建呢? -- 元类(metaclass),也就是类型的类型
+ 
+New-Style Class 的默认元类是 type 
 
 demo1.py 
 
@@ -19,7 +21,7 @@ class = metaclass(...)          # 元类创建类型
 instance = class(...)           # 类型创建实例
 
 instance.__class__ is class     # 实例的类型
-class.__class_ is metaclass     # 类型的类型
+class.__class__ is metaclass     # 类型的类型
 ```
 
 **__metaclass__**
