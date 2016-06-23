@@ -1,0 +1,218 @@
+# 第11章 元类
+
+类型对象地位超然，负责创建对象实例，控制对象行为（方法）。那么类型对象又由谁来创建呢？
+-- 元类（metaclass），也就是类型的类型。
+
+New-Style Class 的默认元类是 type。
+
+```
+>>> class Data(object): pass
+...
+>>> Data.__class__
+<type 'type'>
+>>> type.__class__
+<type 'type'>
+```
+
+关键字class会被编译成元类创建类型对象指令。
+
+```
+>>> Data = type("Data", (object,), {"x":1})
+>>> Data.__class__
+<type 'type'>
+>>> Data.__base__
+<type 'object'>
+>>> Data.x
+1
+```
+
+正因为class和def一样是指令，我们可以在任何地方创建类型对象。
+
+```
+>>> def test():
+...   class Data(object): pass
+...   return Data
+...
+>>> Data = test()
+>>> Data.__name__
+'Data'
+>>> type(Data)
+<type 'type'>
+>>> Data()
+<__main__.Data object at 0x100f5ba90>
+```
+
+现在可以理清几者的关系，以及创建顺序了。
+
+```
+class = metaclass(...)             # 元类创建类型
+instance = class(...)              # 类型创建实例
+
+instance.__class__ is class        # 实例的类型
+class.__class__ is metaclass       # 类型的类型
+```
+
+__metaclass__
+
+除了使用默认元类type以外，不可以用 __metaclass__ 属性指定自定义元类，以便对类型对象创建过程进行干预。
+
+```
+>>> class InjectMeta(type):
+...   def __new__(cls, name, bases, attrs):
+...     t = type.__new__(cls, name, bases, attrs)
+...     def print_id(self): print hex(id(self))
+...     t.print_id = print_id
+...     t.s = "Hello, World!"
+...     return t
+...
+>>> class Data(object):
+...   __metaclass__ = InjectMeta
+...
+>>> Data.__metaclass__
+<class '__main__.InjectMeta'>
+>>> Data.__class__
+<class '__main__.InjectMeta'>
+>>> dir(Data)
+['__class__', '__delattr__', '__dict__', '__doc__', '__format__', '__getattribute__', '__hash__', '__init__', '__metaclass__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'print_id', 's']
+>>> Data.s
+'Hello, World!'
+>>> Data().print_id()
+0x100f5ba90
+```
+
+自定义元类通常都从type继承，习惯以Meta结尾，就像抽象元类abc.ABCMeta那样。代码很简单，只需注意 __new__ 和 __init__ 方法参数的区别就行了。
+
+
+```
+>>> class InjectMeta(type):
+...   def __new__(cls, name, bases, attrs):
+...     print "class:", cls
+...     print "name:", name
+...     print "bases:", bases
+...     print "attrs:", attrs
+...     return type.__new__(cls, name, bases, attrs)
+...   def __init__(cls, name, bases, attrs):
+...     print "class:", cls
+...     type.__init__(cls, name, bases, attrs)
+...
+>>> class Data(object):
+...   __metaclass__ = InjectMeta
+...   x = 1
+...   def test(self): pass
+...
+class: <class '__main__.InjectMeta'>
+name: Data
+bases: (<type 'object'>,)
+attrs: {'test': <function test at 0x100f615f0>, 'x': 1, '__module__': '__main__', '__metaclass__': <class '__main__.InjectMeta'>}
+class: <class '__main__.Data'>
+```
+
+当解释器创建类型对象时，会按以下顺序查找 __metaclass__ 属性。
+
+`class.__metaclass__ --> bases.__metaclass__ --> module.__metaclass__ -> type`
+
+这也是为什么在模块中可以用 __metaclass__ 为所有类型指定默认元类的缘故。
+
+虽然惯例元类写成type的派生类，但也可以用函数代替。
+
+```
+>>> def inject_meta(name, bases, attrs):
+...   t = type(name, bases, attrs)
+...   t.s = "Hello, World!"
+...   return t
+...
+>>> class Data(object):
+...   __metaclass__ = inject_meta
+...
+>>> Data.__metaclass__
+<unbound method Data.inject_meta>
+>>> Data.s
+'Hello, World!'
+```
+
+magic
+
+对象行为由类型决定，实例不过存储了状态数据。那么，当我们控制了类型对象的创建，也就意味着可以让对象的实际行为和代码存在极大的差异。这是魔法的力量，也是Python核心开发人员Tim peters说出下面这番话的原因（想必你对他的import this 很熟悉）
+
+```
+Metaclasses are deeper magic than 99% of users should ever worry about. If you wonder whether you need them, you don't (the people who actually need them know with certainty that they need them, and don't need an explanation about why). Time Peters (c.l.p post 2002-12-22)
+```
+
+试着写两个简单的例子练练手。
+
+静态类（static class）:不允许创建实例，通常作为工具类（Utility）存在。
+
+```
+>>> class StaticClassMeta(type):
+...   def __new__(cls, name, bases, attr):
+...     t = type.__new__(cls, name, bases, attr)
+...     def ctor(cls, *args, **kwargs):
+...       raise RuntimeError("Cannot create a instance of the static class!")
+...     t.__new__ = staticmethod(ctor)
+...     return t
+...
+>>> class Data(object):
+...   __metaclass__ = StaticClassMeta
+...
+>>> Data()
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 5, in ctor
+RuntimeError: Cannot create a instance of the static class!
+```
+
+密封类（sealed class）：禁止被继承。
+
+```
+>>> class SealedClassMeta(type):
+...   _types = set()
+...   def __init__(cls, name, bases, attrs):
+...     if cls._types & set(bases):
+...       raise SyntaxError("Cannot inherit from a sealed class!")
+...     cls._types.add(cls)
+...
+>>> class A(object):
+...   __metaclass__ = SealedClassMeta
+...
+>>> class B(A): pass
+...
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "<stdin>", line 5, in __init__
+SyntaxError: Cannot inherit from a sealed class!
+```
+
+```
+class SealedClassMeta(type):
+  _types = set()
+
+  def __init__(cls, name, bases, attrs):
+    print "cls: %s" % cls
+    print "bases: %s" % bases
+    v = cls._types & set(bases)
+    print v
+    if v:
+      raise SyntaxError("Cannot inherit from a sealed class!")
+    print "add %s" % cls
+    cls._types.add(cls)
+
+class A(object):
+  __metaclass__ = SealedClassMeta
+
+class B(A): pass
+```
+```
+cls: <class '__main__.A'>
+bases: <type 'object'>
+set([])
+add <class '__main__.A'>
+cls: <class '__main__.B'>
+bases: <class '__main__.A'>
+set([<class '__main__.A'>])
+Traceback (most recent call last):
+  File "demo.py", line 17, in <module>
+    class B(A): pass
+  File "demo.py", line 10, in __init__
+    raise SyntaxError("Cannot inherit from a sealed class!")
+SyntaxError: Cannot inherit from a sealed class!
+```
