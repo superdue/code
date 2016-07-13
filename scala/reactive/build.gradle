@@ -1,0 +1,24 @@
+apply plugin: 'scala'
+apply plugin: 'idea'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile('com.typesafe.akka:akka-actor_2.10:2.3.12') {
+    exclude group: 'org.scala-lang'
+  }
+  compile 'org.scala-lang:scala-compiler:2.10.4'
+  compile 'com.ning:async-http-client:1.7.19'
+  compile 'ch.qos.logback:logback-classic:1.0.7'
+  compile 'com.typesafe.akka:akka-testkit_2.10:2.3.12'
+  testCompile 'org.scalatest:scalatest_2.10:1.9.2-SNAP2'
+  compile 'com.typesafe.akka:akka-cluster_2.10:2.3.12'
+}
+
+idea {
+  module {
+    downloadSources = true
+  }
+}

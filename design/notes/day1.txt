@@ -1,0 +1,117 @@
+什么是好的设计？
+
+设计:把一个问题变成可计算的
+好的设计:这个计算的语义跟问题域的语义是一致的
+
+SICP
+Concepts, Techniques, and Models of Computer Programming
+
+Essentials of programming languages 
+Types and Programming Languages
+Denotational Semantics: A Methodology For Language Development
+Theories of Programming Languages
+
+A History of Erlang
+- 这些参与Erlang开发设计的人的思想，思考方式
+- 管理层的想法，看法
+- 重大事件，事件对Erlang发展的左右
+
+- highly concurrent
+- distributed;highly fault-tolerant
+- be changed on the fly
+- soft real-time
+
+Part I: Pre-1985.Conception
+
+AXE PLEX
+1988: AXE-N (C++)
+
+容错
+
+===========================================================================
+
+AI
+
+统计数据派
+
+规则派
+
+下个世纪大数据会退潮
+
+数据梳理，更强调因果关系，
+规则派：统计只知道相关性
+
+
+Selective Receive
+
+===========================================================================
+
+AXD301
+
+===========================================================================
+
+要么不解决，要么规避掉
+提供机制，不提供策略。
+提供工具，自己解决，不保证消息可靠性。
+
+===========================================================================
+
+AXE-N 88-95
+
+ATM switch => AXD
+
+OTP "Open Telecom Platform"
+
+- Libraries of Erlang code.
+- Design patterns for building common applications.
+- Documentation.
+- Courses.
+- How to's.
+
+基于这个平台如何做架构设计。严重缺失。
+功能提供者，平台设计哲学丢弃，代码堆砌。
+
+- Records. (Map) 解决表达的问题
+- Macros.
+- Include files.
+- Infix notation for list append and subtract("++" and "-").
+
+Seq + Concurrent
+
+Dynamic 类型检查运行时
+Static
+
+Strong 隐式转换
+Weak
+
+Python D, S
+Erlng  D, S
+C++    S, S
+C      S, W
+
+Prolog: Dynamic Type
+
+Whatapp -> Mnesia ->
+
+- Fast K/V lookup
+- Complicated non real-time queries, mainly for operation and maintenance.
+- Distributed data due to distributed applications.
+- High fault tolerance.
+- Dynamic reconfiguration.
+- Complex objexts.
+
+Phil Wadler 类型系统专家 haskell 失败了，留下了符号
+Dialyzer
+
+博士论文
+2002 Concurrent oriented programming
+
+爱立信 未来是软件的世界
+爱立信的Erlang全面开花
+
+H248协议
+
+只要有软件能力在，业务能力在，做就行了。
+对计算机工程方面的认识。
+
+COP论坛总结！7月底前

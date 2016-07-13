@@ -1,0 +1,243 @@
+* SICP *
+
+The Design of a Fault-Tolerant, Scalable, Soft Real Time Distributed Service with requirements for High Availability
+
+
+
+
+timer:tc(t3.fib.[40]).
+
+
+
+fib3(0) -> 0;
+fib3(1) -> 1;
+fib3(N) ->
+	S = self(),
+	Pid1 = spawn(fun() -> 
+					S ! {fib3(N-1)}
+	             end),
+	Pid2 = spawn(fun() ->
+					S ! {fib3(N-2)}
+		         end),
+	receive
+		{Pid1, Rec1} ->
+			receive
+				{Pid2, Rec2} ->
+					Rec1 + Rec2
+					
+问题本身计算依赖性
+
+迭代关系
+```
+F(n) = 1 * F(n - 1) + 1 * F(n - 2)
+     = 2 * F(n - 2) + 1 * F(n - 3)
+     = 3 * F(n - 3) + 2 * F(n - 4)
+     = 5 * F(n - 4) + 3 * F(n - 5)
+	 = ...
+     = F(p + 1) * F(n - p) + F(p) * F(n - (p + 1))
+```
+
+1 1 2 3 5 8 13
+
+
+when N rem 2 =/= 0; let p = (n - 1)/2
+	F(n) = F((n + 1)/2)^2 + F((n - 1)/2)^2
+	
+when N rem 2 =:= 0; let p = n / 2
+	F(n) = F(n/2 + 1)*F(n/2) + F(n/2)*F(n/2 - 1)
+	     = F(n/2)^2 + 2*F(n/2 - 1)*F(n/2)
+		 
+=>
+	F(2*n) = F(n)^2 + 2*F(n)*F(n - 1)
+	F(2*n + 1) = F(n + 1)^2 + F(n)^2
+	
+规模
+
+
+
+
+优化的3个层次
+
+问题（业务）层面
+	算法、数据结构层面
+		系统、语言层面
+		
+
+库和服务的区别
+
+- 提供功能需要的资源
+- 升级
+
+* Micro Service is just a language feature in Erlang.
+
+- StateLess
+
+- Scalable Service
+
+
+
+create(Name :: name()) -> ok
+
+get_closest_pid(Name) -> pid() | {error, Reason}
+
+join(Name, Pid :: pid() -> ok | {error, {no_such_}})
+
+
+pg2:create(abc)
+pg2:which_groups().
+pg2:get_members(abc).
+
+
+
+- Fault Tolerant Service
+- Soft Real Time
+
+
+monitor(Type, Item) -> MonitorRef
+
+P = spawn(fun() -> timer:sleep(20000), 1 / 0 end).
+monitor(process, P).
+flush().
+
+
+spawn(fun() -> fib_service:calc(44) end || _ <- lists:seq(1))
+
+
+CPU 100%
+
+
+Scalability
+
+可伸缩性
+
+- Highly Available Service
+
+-name (long names)
+-sname (short names)
+
+erl -sname dhui
+
+node().
+
+Erlang Port Mapper Daemon 
+名字服务
+默认端口号
+epmd(1).
+
+erl -sname dhui -setcookie abc
+erlang:get_cookie().
+net_adm:ping('sunm@ASUS').
+nodes().
+
+erl -sname sunm -setcookie abc
+erlang:get_cookie().
+nodes().
+
+
+
+$ rvm:(ruby-2.2.0@rails4.2) erl -sname zhangsan -setcookie abc
+Erlang/OTP 17 [erts-6.4] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+Eshell V6.4  (abort with ^G)
+(zhangsan@Stephan-MacBook-Pro)1> erlang:get_cookie().
+abc
+(zhangsan@Stephan-MacBook-Pro)2> net_adm:ping('lisi@Stephan-MacBook-Pro').
+pong
+(zhangsan@Stephan-MacBook-Pro)3> nodes().
+['lisi@Stephan-MacBook-Pro']
+(zhangsan@Stephan-MacBook-Pro)4> node().
+'zhangsan@Stephan-MacBook-Pro'
+(zhangsan@Stephan-MacBook-Pro)5>
+
+$ rvm:(ruby-2.2.0@rails4.2) erl -sname lisi -setcookie abc
+Erlang/OTP 17 [erts-6.4] [source] [64-bit] [smp:4:4] [async-threads:10] [hipe] [kernel-poll:false] [dtrace]
+
+Eshell V6.4  (abort with ^G)
+(lisi@Stephan-MacBook-Pro)1> erlang:get_cookie().
+abc
+(lisi@Stephan-MacBook-Pro)2> net_adm:ping('zhangsan@Stephan-MacBook-Pro').
+pong
+(lisi@Stephan-MacBook-Pro)3> nodes().
+['zhangsan@Stephan-MacBook-Pro']
+(lisi@Stephan-MacBook-Pro)4> node().
+'lisi@Stephan-MacBook-Pro'
+(lisi@Stephan-MacBook-Pro)5>
+
+
+rpc:call
+
+call(Node, Module, Function, Args) -> Res | {badrpc, Reason}
+
+Types:
+	
+	Node = node()
+	
+	
+rpc:call(sunm@ASUS, erlang.node, []).
+
+
+流程是不是天然并行运行
+对资源竞争共享的关系，资源的能力决定伸缩性到达的程度
+
+优化流程
+优化资源
+
+
+StateFul
+
+状态加异步，系统变复杂
+
+
+
+
+
+
+
+
+Paxos
+Raft
+
+
+
+
+
+
+
+
+
+
+
+
+
+global
+
+register_name(Name, Pid) -> yes | no
+register_name(Name, Pid, Resolved) -> yes | no
+
+global:whereis_name
+
+whereis_name(Name) -> pid() | undefined
+
+global:send
+
+send(Name, Msg) -> Pid
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,59 @@
+package groovy.lang
+public interface GroovyObject {
+	Object invokeMethod(String name, Object args);
+	Object getProperty(String property);
+	void setProperty(String property, Object newValue);
+	MetaClass getMetaClass();
+	void setMetaClass(MetaClass metaClass);
+}
+
+package groovy.lang
+public interface GroovyInterceptable extends GroovyObject {
+	
+}
+
+MetaClassRegistry <>--> Map --> MetaClass
+                         |          ^
+                         v          |
+                 Class (for POJO)  GroovyObject(POGO)
+
+For a POJO, Groovy fetches its `MetaClass` from the application-wide `MetaClassRegistry` and \
+delegates method invocation to it. So, any interceptors or methods we've defined on its \
+`MetaClass` take precedence over the POJO's original method.
+
+For a POGO, Groovy takes a few extra steps, as illustrated in the following figure. \
+If the object implements `GroovyInterceptable`, then all calls are routed to its \
+`invokeMethod()`. Within this interceptor, we can route calls to the actual method, making \
+aspect-oriented-programming-like operations possbile.
+If the POGO does not implement `GroovyInterceptable`, then Groovy looks for the method first \
+in the POGO's `MetaClass` and then, if it's not found, on the POGO itself. 
+If the POGO has no such method, Groovy looks for a property or a field with the method name. \
+If that property or field is of type `Closure`, Groovy invokes that in place of the method call. \
+If Groovy finds no such property or field, it makes two last attempts. \
+If the POGO has a method named `methodMissing()`, it calls it. \
+Otherwise, it calls the POGO's `invokeMethod()`. \
+If we've implemented this method on our POGO, it's used. \
+the default implementation of `invokeMethod()` throws a `MissingMethodException`, indicating the failure of the call.
+
+
+
+
+MetaObjectProtocol.getMetaMethod()
+
+MetaClass <-- MetaObjectProtocol
+
+
+Whereas `println()` is a Groovy-injected method is `Object`, calls to which the code we write will intercept,
+`System.out.println()` is a `static` method on the `PrintStream` class that's not affected by out interceptions.
+
+
+The `delegate` within the intercepting closure refers to the target object whose methods are being intercepted.
+
+The ablility to intercept method calls using `MetaClass` was influenced by Grails. It was originally introduced in Grails and was later moved into Groovy.
+
+
+
+
+
+
+

@@ -1,0 +1,8 @@
+.idea
+*.ipr
+*.iml
+*.iws
+out
+.gradle
+.DS_Store
+*.pyc

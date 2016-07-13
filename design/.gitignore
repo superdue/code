@@ -1,0 +1,9 @@
+*.beam
+.gradle
+*.classpath
+*.project
+.cache
+.worksheet
+.settings
+bin
+a.out
